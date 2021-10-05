@@ -23,13 +23,37 @@
 
 package org.ammonium.hazel.client;
 
+import discord4j.core.DiscordClient;
+import discord4j.core.DiscordClientBuilder;
+import discord4j.core.GatewayDiscordClient;
+import discord4j.core.object.presence.ClientActivity;
+import discord4j.core.object.presence.ClientPresence;
+import discord4j.core.shard.MemberRequestFilter;
+import discord4j.gateway.intent.IntentSet;
+import discord4j.rest.response.ResponseFunction;
+import discord4j.rest.util.AllowedMentions;
+import java.util.Objects;
+
 /**
  * Represents the main entrypoint for the Hazel Discord bot.
  */
 public final class Hazel {
 
   public static void main(String[] args) {
-    final HazelClient client = new HazelClient(args[0]);
-  }
+    final String token = args[0];
+    Objects.requireNonNull(token, "Missing token");
 
+    final DiscordClient client = DiscordClientBuilder.create(token)
+      .onClientResponse(ResponseFunction.emptyIfNotFound())
+      .setDefaultAllowedMentions(AllowedMentions.suppressEveryone())
+      .build();
+
+    client.gateway()
+      .setEnabledIntents(IntentSet.all())
+      // Apparently ___ ignores the parameter.
+      .setInitialPresence(___ -> ClientPresence.online(ClientActivity.competing("$help")))
+      .setMemberRequestFilter(MemberRequestFilter.none())
+      .withGateway(GatewayDiscordClient::onDisconnect)
+      .block();
+  }
 }
