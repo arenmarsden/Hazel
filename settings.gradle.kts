@@ -1,1 +1,2 @@
-rootProject.name = "oss-software-template"
+rootProject.name = "Hazel"
+include("client")

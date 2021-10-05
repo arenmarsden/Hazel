@@ -2,14 +2,14 @@ import org.ajoberstar.grgit.Grgit
 import org.cadixdev.gradle.licenser.LicenseExtension
 
 plugins {
-  id("org.cadixdev.licenser") version "0.5.0" apply false
+  id("org.cadixdev.licenser") version "0.6.1" apply false
   id("org.ajoberstar.grgit") version "4.1.0" apply false
   jacoco
 }
 
 allprojects {
-  group = "com.arenmarsden"
-  version = "0.1"
+  group = "org.ammonium"
+  version = "0.1-SNAPSHOT"
 }
 
 subprojects {
@@ -37,8 +37,8 @@ subprojects {
     include("**/*.java")
     include("**/*.kts")
 
-    header = rootProject.file("HEADER.txt")
-    newLine = false
+    setHeader(rootProject.file("HEADER.txt"))
+    newLine(true)
   }
 
   tasks.named<JavaCompile>("compileJava") {
