@@ -26,6 +26,7 @@ package org.ammonium.hazel.client;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
+import discord4j.core.event.domain.Event;
 import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.core.shard.MemberRequestFilter;
@@ -33,15 +34,25 @@ import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.response.ResponseFunction;
 import discord4j.rest.util.AllowedMentions;
 import java.util.Objects;
+import org.ammonium.hazel.client.command.CommandManager;
+import org.ammonium.hazel.client.listener.Listener;
+import org.ammonium.hazel.client.listener.create.CommandHandlingListener;
 
 /**
  * Represents the main entrypoint for the Hazel Discord bot.
  */
 public final class Hazel {
 
+  /**
+   * Run the main project.
+   *
+   * @param args the arguments.
+   */
   public static void main(String[] args) {
     final String token = args[0];
     Objects.requireNonNull(token, "Missing token");
+
+    CommandManager commandManager = new CommandManager();
 
     final DiscordClient client = DiscordClientBuilder.create(token)
       .onClientResponse(ResponseFunction.emptyIfNotFound())
@@ -50,10 +61,22 @@ public final class Hazel {
 
     client.gateway()
       .setEnabledIntents(IntentSet.all())
-      // Apparently ___ ignores the parameter.
-      .setInitialPresence(___ -> ClientPresence.online(ClientActivity.competing("$help")))
+      .setInitialPresence(ignored -> ClientPresence.online(ClientActivity.playing("$help")))
       .setMemberRequestFilter(MemberRequestFilter.none())
-      .withGateway(GatewayDiscordClient::onDisconnect)
-      .block();
+      .withGateway(gateway -> {
+        register(gateway, new CommandHandlingListener(commandManager));
+        return gateway.onDisconnect();
+      }).block();
   }
+
+  @SafeVarargs
+  private static <T extends Event> void register(GatewayDiscordClient client,
+    Listener<T>... events) {
+    for (Listener<T> event : events) {
+      client.on(event.getEventClass())
+        .onErrorContinue((e, o) -> event.handleError(e))
+        .subscribe(event::execute);
+    }
+  }
+
 }

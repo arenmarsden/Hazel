@@ -21,23 +21,42 @@
  * TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-package org.ammonium.hazel.client.command.exception;
+package org.ammonium.hazel.client.listener;
 
-import discord4j.rest.util.Permission;
+import discord4j.core.event.domain.Event;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import reactor.core.publisher.Mono;
 
 /**
- * Thrown whenever the bot or a user is missing the required permissions to execute a task.
+ * Represents a listener.
+ *
+ * @param <T> the type.
  */
-public class InsufficientPermissionException extends RuntimeException {
+public interface Listener<T extends Event> {
 
-  private final Permission permission;
+  /**
+   * Get the event class.
+   *
+   * @return the class.
+   */
+  @NonNull Class<T> getEventClass();
 
-  public InsufficientPermissionException(Permission permission) {
-    super("Missing permission " + permission.name());
-    this.permission = permission;
+  /**
+   * Execute the listener.
+   *
+   * @param event the event.
+   * @return a {@link Mono} containing a void.
+   */
+  Mono<Void> execute(T event);
+
+  /**
+   * Handle an error given by the execution of the listener.
+   *
+   * @param throwable the error.
+   * @return a {@link Mono} voiding the result and handling it.
+   */
+  default Mono<Void> handleError(Throwable throwable) {
+    return Mono.error(throwable);
   }
 
-  public Permission getPermission() {
-    return permission;
-  }
 }

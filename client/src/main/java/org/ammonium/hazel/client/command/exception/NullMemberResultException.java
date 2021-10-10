@@ -23,21 +23,13 @@
 
 package org.ammonium.hazel.client.command.exception;
 
-import discord4j.rest.util.Permission;
-
 /**
- * Thrown whenever the bot or a user is missing the required permissions to execute a task.
+ * Represents an exception to be thrown whenever a member was not found in the Optional.
  */
-public class InsufficientPermissionException extends RuntimeException {
+public class NullMemberResultException extends RuntimeException {
 
-  private final Permission permission;
-
-  public InsufficientPermissionException(Permission permission) {
-    super("Missing permission " + permission.name());
-    this.permission = permission;
+  public NullMemberResultException() {
+    super("Unable to find member from event optional.");
   }
 
-  public Permission getPermission() {
-    return permission;
-  }
 }

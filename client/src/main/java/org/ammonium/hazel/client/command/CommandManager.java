@@ -21,23 +21,59 @@
  * TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-package org.ammonium.hazel.client.command.exception;
+package org.ammonium.hazel.client.command;
 
-import discord4j.rest.util.Permission;
+import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import org.ammonium.hazel.client.command.moderation.BanCommand;
+import reactor.core.publisher.Mono;
 
 /**
- * Thrown whenever the bot or a user is missing the required permissions to execute a task.
+ * Represents a command manager.
  */
-public class InsufficientPermissionException extends RuntimeException {
+public final class CommandManager {
 
-  private final Permission permission;
+  private final List<Command> commandList;
 
-  public InsufficientPermissionException(Permission permission) {
-    super("Missing permission " + permission.name());
-    this.permission = permission;
+  /**
+   * Construct a new Command Manager.
+   */
+  public CommandManager() {
+    this.commandList = Arrays.asList(
+      new BanCommand()
+    );
   }
 
-  public Permission getPermission() {
-    return permission;
+  /**
+   * Get a command from the list by its name.
+   *
+   * @param name the name of the command.
+   * @return an {@link Optional} containing the command.
+   */
+  public Optional<Command> getCommand(String name) {
+    return this.commandList.stream()
+      .filter(command -> command.getName().equalsIgnoreCase(name))
+      .findFirst();
+  }
+
+  public Mono<Void> processCommand(CommandContext context) {
+    return Mono.justOrEmpty(context.getEvent())
+      .map(MessageCreateEvent::getMessage)
+      .map(Message::getContent)
+      .filter(content -> content.startsWith("$"))
+      .map(content -> content.substring(content.indexOf("$"))
+        .substring(content.indexOf("" + content.length())))
+      .map(this::getCommand)
+      .filter(Optional::isPresent)
+      .map(Optional::get)
+      .map(cmd -> cmd.execute(context))
+      .then();
+  }
+
+  public List<Command> getCommands() {
+    return commandList;
   }
 }

@@ -21,23 +21,48 @@
  * TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-package org.ammonium.hazel.client.command.exception;
+package org.ammonium.hazel.client.listener.create;
 
+import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.rest.util.Permission;
+import org.ammonium.hazel.client.command.CommandContext;
+import org.ammonium.hazel.client.command.CommandManager;
+import org.ammonium.hazel.client.listener.Listener;
+import org.ammonium.hazel.client.util.ReactorUtil;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import reactor.core.publisher.Mono;
 
 /**
- * Thrown whenever the bot or a user is missing the required permissions to execute a task.
+ * Represents the listener to handle messages.
  */
-public class InsufficientPermissionException extends RuntimeException {
+public class CommandHandlingListener implements Listener<MessageCreateEvent> {
 
-  private final Permission permission;
+  private final CommandManager commandManager;
 
-  public InsufficientPermissionException(Permission permission) {
-    super("Missing permission " + permission.name());
-    this.permission = permission;
+  public CommandHandlingListener(CommandManager commandManager) {
+    this.commandManager = commandManager;
   }
 
-  public Permission getPermission() {
-    return permission;
+  @Override
+  public @NonNull Class<MessageCreateEvent> getEventClass() {
+    return MessageCreateEvent.class;
+  }
+
+  @Override
+  public Mono<Void> execute(MessageCreateEvent event) {
+    return event.getMessage().getChannel()
+      .ofType(TextChannel.class)
+      .flatMap(channel -> channel.getEffectivePermissions(event.getClient().getSelfId()))
+
+      .filterWhen(ReactorUtil.filterOrExecute(permissions ->
+        permissions.contains(Permission.SEND_MESSAGES)
+          && permissions.contains(Permission.VIEW_CHANNEL),
+        Mono.empty()))
+
+      .flatMap(ignored -> Mono.justOrEmpty(event.getGuildId()))
+      .map(guildId -> new CommandContext(event))
+      .map(commandManager::processCommand)
+      .then();
   }
 }
