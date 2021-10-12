@@ -30,13 +30,16 @@ import discord4j.core.event.domain.Event;
 import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.core.shard.MemberRequestFilter;
+import discord4j.gateway.intent.Intent;
 import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.response.ResponseFunction;
 import discord4j.rest.util.AllowedMentions;
+import java.time.Duration;
 import java.util.Objects;
 import org.ammonium.hazel.client.command.CommandManager;
 import org.ammonium.hazel.client.listener.Listener;
 import org.ammonium.hazel.client.listener.create.CommandHandlingListener;
+import reactor.core.publisher.Mono;
 
 /**
  * Represents the main entrypoint for the Hazel Discord bot.
@@ -60,7 +63,13 @@ public final class Hazel {
       .build();
 
     client.gateway()
-      .setEnabledIntents(IntentSet.all())
+      .setEnabledIntents(IntentSet.of(
+        Intent.GUILD_BANS,
+        Intent.GUILD_MEMBERS,
+        Intent.GUILD_PRESENCES,
+        Intent.GUILD_MESSAGES,
+        Intent.GUILD_MESSAGE_REACTIONS,
+        Intent.DIRECT_MESSAGES))
       .setInitialPresence(ignored -> ClientPresence.online(ClientActivity.playing("$help")))
       .setMemberRequestFilter(MemberRequestFilter.none())
       .withGateway(gateway -> {
@@ -73,9 +82,12 @@ public final class Hazel {
   private static <T extends Event> void register(GatewayDiscordClient client,
     Listener<T>... events) {
     for (Listener<T> event : events) {
-      client.on(event.getEventClass())
-        .onErrorContinue((e, o) -> event.handleError(e))
-        .subscribe(event::execute);
+      client.getEventDispatcher()
+        .on(event.getEventClass())
+        .flatMap(e -> event.execute(e)
+          .timeout(Duration.ofSeconds(30), Mono.error(new RuntimeException("Event timed out.")))
+          .onErrorResume(err -> Mono.fromRunnable(() -> event.handleError(err)))
+        ).subscribe(null, event::handleError);
     }
   }
 

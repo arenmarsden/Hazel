@@ -59,7 +59,7 @@ public final class CommandManager {
       .findFirst();
   }
 
-  public Mono<Void> processCommand(CommandContext context) {
+  public Mono<?> processCommand(CommandContext context) {
     return Mono.justOrEmpty(context.getEvent())
       .map(MessageCreateEvent::getMessage)
       .map(Message::getContent)
@@ -69,8 +69,7 @@ public final class CommandManager {
       .map(this::getCommand)
       .filter(Optional::isPresent)
       .map(Optional::get)
-      .map(cmd -> cmd.execute(context))
-      .then();
+      .map(cmd -> cmd.execute(context));
   }
 
   public List<Command> getCommands() {

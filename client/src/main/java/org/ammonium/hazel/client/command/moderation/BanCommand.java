@@ -23,14 +23,10 @@
 
 package org.ammonium.hazel.client.command.moderation;
 
-import discord4j.core.object.entity.Message;
-import discord4j.core.spec.EmbedCreateSpec;
-import discord4j.core.spec.MessageCreateSpec;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
 import org.ammonium.hazel.client.command.Command;
 import org.ammonium.hazel.client.command.CommandContext;
-import org.ammonium.hazel.client.util.DiscordUtil;
 import reactor.core.publisher.Mono;
 
 /**

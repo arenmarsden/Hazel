@@ -23,6 +23,7 @@
 
 package org.ammonium.hazel.client.command;
 
+import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 
@@ -36,9 +37,10 @@ public class CommandContext {
   /**
    * Construct a new {@link CommandContext} with the {@link MessageCreateEvent}.
    *
-   * @param event the {@link MessageCreateEvent}.
+   * @param event   the {@link MessageCreateEvent}.
+   * @param guildId the identifier for the guild.
    */
-  public CommandContext(MessageCreateEvent event) {
+  public CommandContext(/*Snowflake guildId,*/ MessageCreateEvent event) {
     this.event = event;
   }
 

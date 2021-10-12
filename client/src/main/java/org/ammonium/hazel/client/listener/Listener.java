@@ -47,7 +47,7 @@ public interface Listener<T extends Event> {
    * @param event the event.
    * @return a {@link Mono} containing a void.
    */
-  Mono<Void> execute(T event);
+  Mono<?> execute(T event);
 
   /**
    * Handle an error given by the execution of the listener.

@@ -25,11 +25,9 @@ package org.ammonium.hazel.client.listener.create;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.rest.util.Permission;
 import org.ammonium.hazel.client.command.CommandContext;
 import org.ammonium.hazel.client.command.CommandManager;
 import org.ammonium.hazel.client.listener.Listener;
-import org.ammonium.hazel.client.util.ReactorUtil;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import reactor.core.publisher.Mono;
 
@@ -50,19 +48,10 @@ public class CommandHandlingListener implements Listener<MessageCreateEvent> {
   }
 
   @Override
-  public Mono<Void> execute(MessageCreateEvent event) {
+  public Mono<?> execute(MessageCreateEvent event) {
     return event.getMessage().getChannel()
       .ofType(TextChannel.class)
-      .flatMap(channel -> channel.getEffectivePermissions(event.getClient().getSelfId()))
-
-      .filterWhen(ReactorUtil.filterOrExecute(permissions ->
-        permissions.contains(Permission.SEND_MESSAGES)
-          && permissions.contains(Permission.VIEW_CHANNEL),
-        Mono.empty()))
-
-      .flatMap(ignored -> Mono.justOrEmpty(event.getGuildId()))
       .map(guildId -> new CommandContext(event))
-      .map(commandManager::processCommand)
-      .then();
+      .flatMap(commandManager::processCommand);
   }
 }
