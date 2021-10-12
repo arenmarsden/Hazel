@@ -21,15 +21,23 @@
  * TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-package org.ammonium.hazel.client.command.exception;
+package org.ammonium.hazel.client.exception;
+
+import discord4j.rest.util.Permission;
 
 /**
- * Represents an exception to be thrown whenever a member was not found in the Optional.
+ * Thrown whenever the bot or a user is missing the required permissions to execute a task.
  */
-public class NullMemberResultException extends RuntimeException {
+public class InsufficientPermissionException extends RuntimeException {
 
-  public NullMemberResultException() {
-    super("Unable to find member from event optional.");
+  private final Permission permission;
+
+  public InsufficientPermissionException(Permission permission) {
+    super("Missing permission " + permission.name());
+    this.permission = permission;
   }
 
+  public Permission getPermission() {
+    return permission;
+  }
 }

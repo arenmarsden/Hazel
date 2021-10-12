@@ -35,7 +35,7 @@ import discord4j.core.spec.MessageCreateSpec;
 import discord4j.rest.util.AllowedMentions;
 import discord4j.rest.util.AllowedMentions.Type;
 import discord4j.rest.util.Permission;
-import org.ammonium.hazel.client.command.exception.InsufficientPermissionException;
+import org.ammonium.hazel.client.exception.InsufficientPermissionException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
