@@ -68,8 +68,10 @@ public final class DiscordUtil {
   public static Mono<Message> sendMessage(MessageCreateSpec spec, MessageChannel channel,
     boolean hasEmbed) {
     return Mono.zip(
-        DiscordUtil.hasPermission(channel, channel.getClient().getSelfId(), Permission.SEND_MESSAGES),
-        DiscordUtil.hasPermission(channel, channel.getClient().getSelfId(), Permission.EMBED_LINKS))
+        DiscordUtil.hasPermission(channel, channel.getClient().getSelfId(),
+          Permission.SEND_MESSAGES),
+        DiscordUtil.hasPermission(channel, channel.getClient().getSelfId(),
+          Permission.EMBED_LINKS))
       .flatMap(results -> {
         boolean canSendMessage = results.getT1();
         boolean canSendEmbed = results.getT2();

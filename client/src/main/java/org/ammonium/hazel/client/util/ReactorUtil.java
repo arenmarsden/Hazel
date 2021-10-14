@@ -28,8 +28,19 @@ import java.util.function.Predicate;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
+/**
+ * Various utilities for reactor utilities.
+ */
 public final class ReactorUtil {
 
+  /**
+   * Filter or execute when a condition is met.
+   *
+   * @param asyncPredicate the predicate publisher.
+   * @param switchMono     the switch.
+   * @param <T>            the value passed in
+   * @return a function of mono.
+   */
   public static <T> Function<T, Mono<Boolean>> filterWhenOrExecute(
     Function<? super T, ? extends Publisher<Boolean>> asyncPredicate, Mono<?> switchMono) {
     return value -> Mono.from(asyncPredicate.apply(value))
@@ -42,6 +53,14 @@ public final class ReactorUtil {
       });
   }
 
+  /**
+   * Filter or execute when a condition is met.
+   *
+   * @param tester     the tester
+   * @param switchMono the executor.
+   * @param <T>        the type.
+   * @return the function and mono result.
+   */
   public static <T> Function<T, Mono<Boolean>> filterOrExecute(Predicate<? super T> tester,
     Mono<?> switchMono) {
     return filterWhenOrExecute(

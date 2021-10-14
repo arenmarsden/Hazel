@@ -42,7 +42,7 @@ public final class CommandManager {
    * Construct a new Command Manager.
    */
   public CommandManager() {
-    this.commandList = Arrays.asList(
+    this.commandList = List.of(
       new BanCommand()
     );
   }
@@ -59,6 +59,12 @@ public final class CommandManager {
       .findFirst();
   }
 
+  /**
+   * Process the command context and execute the command.
+   *
+   * @param context the context
+   * @return a {@link Mono}.
+   */
   public Mono<?> processCommand(CommandContext context) {
     return Mono.justOrEmpty(context.getEvent())
       .map(MessageCreateEvent::getMessage)
